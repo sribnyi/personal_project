@@ -1,6 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:personal_project/firebase/firestore-controller.dart';
-import 'package:unicons/unicons.dart';
 
 import '../model/vehicle.dart';
 
@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                const Icon(UniconsLine.car),
+                const Icon(CupertinoIcons.car),
                 FutureBuilder<List<Vehicle>>(
                   future: _firestoreController.getAllVehicles(),
                   // get the Future returned from getVehicles()
@@ -140,13 +140,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         onChanged: (Vehicle? newValue) {
                           if (newValue != null) {
-                            if (newValue.name == 'Add New Vehicle') {
-                              _showAddVehicleDialog();
-                            } else {
-                              setState(() {
-                                dropdownValue = newValue;
-                              });
-                            }
+                            setState(() {
+                              dropdownValue = newValue;
+                            });
                           }
                         },
                         items: vehicles
