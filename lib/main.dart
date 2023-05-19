@@ -1,11 +1,22 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:personal_project/firebase/firestore-controller.dart';
 import 'package:personal_project/styles/app-styles.dart';
 
 import 'model/vehicle.dart';
 
-void main() => runApp(const FuelApp());
+final _firestoreService = FirestoreController();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const FuelApp());
+}
+
 Vehicle dropdownValue = vehicles[0];
-List<Vehicle> vehicles = [Vehicle(id: '1', name: 'Vehicle 1', initialMileage: 0)];
+List<Vehicle> vehicles = [
+  Vehicle(id: '1', name: 'Vehicle 1', initialMileage: 0)
+];
 
 class FuelApp extends StatelessWidget {
   const FuelApp({super.key});
@@ -13,7 +24,7 @@ class FuelApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Fuel Expense App',
+      title: 'FuelApp',
       theme: ThemeData(
         primarySwatch: Colors.blueGrey,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -28,13 +39,13 @@ class HomePage extends StatefulWidget {
 
   @override
   _HomePageState createState() => _HomePageState();
-
 }
 
 class _HomePageState extends State<HomePage> {
   Future<void> _showAddVehicleDialog() async {
     final TextEditingController vehicleNameController = TextEditingController();
-    final TextEditingController initialMileageController = TextEditingController();
+    final TextEditingController initialMileageController =
+        TextEditingController();
 
     return showDialog<void>(
       context: context,
@@ -72,30 +83,37 @@ class _HomePageState extends State<HomePage> {
             ),
             TextButton(
               child: const Text('Add'),
-              onPressed: () {
-                // TODO: Save the new vehicle to your database
+              onPressed: () async {
+                // Add async keyword
+                // Create new Vehicle instance
+                var newVehicle = Vehicle(
+                  id: '2',
+                  name: vehicleNameController.text,
+                  initialMileage: int.parse(initialMileageController.text),
+                );
+                // Save the new vehicle to Firestore
+                await _firestoreService
+                    .saveVehicle(newVehicle); // Add this line
                 // Add new vehicle to vehicles list
                 setState(() {
-                  vehicles.add(Vehicle(
-                      id: '2',
-                      name: vehicleNameController.text,
-                      initialMileage: int.parse(initialMileageController.text)));
+                  vehicles.add(newVehicle);
                   dropdownValue = vehicles.last;
                 });
                 Navigator.of(context).pop();
               },
-            ),
+            )
           ],
         );
       },
     );
   }
+
   // TODO: Implement methods to fetch the data for selected car
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
+        title: const Text('Home'),
       ),
       body: Center(
         child: DropdownButton<Vehicle>(
@@ -126,8 +144,9 @@ class _HomePageState extends State<HomePage> {
           }).toList()
             ..add(
               DropdownMenuItem(
-                value: Vehicle(id: '0', name: 'Add New Vehicle', initialMileage: 0),
-                child: Text('Add New Vehicle'),
+                value: Vehicle(
+                    id: '0', name: 'Add New Vehicle', initialMileage: 0),
+                child: const Text('Add New Vehicle'),
               ),
             ),
         ),
