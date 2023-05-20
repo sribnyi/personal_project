@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:personal_project/firebase/persistence-controller.dart';
-import 'package:personal_project/model/vehicle.dart';
 
 import '../model/refuel.dart';
+import '../model/vehicle.dart';
 
 class FirestoreController extends PersistenceController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,7 +17,8 @@ class FirestoreController extends PersistenceController {
 
   @override
   Future<String> saveVehicle(Vehicle vehicle) async {
-    DocumentReference ref = await _firestore.collection('vehicles').add(vehicle.toFirestore());
+    DocumentReference ref =
+    await _firestore.collection('vehicles').add(vehicle.toFirestore());
     return ref.id;
   }
 
@@ -31,10 +31,23 @@ class FirestoreController extends PersistenceController {
   }
 
   @override
-  Future<void> saveRefuel(Refuel refuel) async {
-    await _firestore
-        .collection('refuels')
-        .doc(refuel.id)
-        .set(refuel.toFirestore());
+  Future<void> addFuelRecord(Refuel refuel) async {
+    await _firestore.collection('refuels').add(refuel.toFirestore());
+  }
+
+  @override
+  Future<void> updateVehicleMileage(String vehicleId, int newMileage) async {
+    await _firestore.collection('vehicles').doc(vehicleId).update({
+      'mileage': newMileage,
+    });
+  }
+
+  @override
+  Future<void> addFuelAndUpdateMileage(Refuel record, int newMileage) async {
+    // Add the new fuel record
+    await addFuelRecord(record);
+
+    // Update the vehicle's mileage
+    await updateVehicleMileage(record.vehicleId, newMileage);
   }
 }

@@ -1,4 +1,3 @@
-// file: app_styles.dart
 import 'package:flutter/material.dart';
 
 ButtonStyle textButtonStyle() {
@@ -11,5 +10,13 @@ ButtonStyle textButtonStyle() {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(10.0)),
     ),
+  );
+}
+
+Icon iconStyle(IconData iconData) {
+  return Icon(
+    iconData,
+    size: 50,
+    color: Colors.blueGrey[500],
   );
 }
