@@ -11,8 +11,9 @@ class FirestoreController extends PersistenceController {
   Future<List<Vehicle>> getAllVehicles() async {
     var snapshot = await _firestore.collection('vehicles').get();
     return snapshot.docs
-        .map((doc) => Vehicle.fromFirestore(doc.data()))
+        .map((doc) => Vehicle.fromFirestore(doc))
         .toList();
+
   }
 
   @override
@@ -26,7 +27,7 @@ class FirestoreController extends PersistenceController {
   Future<List<Refuel>> getRefuels() async {
     var snapshot = await _firestore.collection('refuels').get();
     return snapshot.docs
-        .map((doc) => Refuel.fromFirestore(doc.data()))
+        .map((doc) => Refuel.fromFirestore(doc))
         .toList();
   }
 

@@ -1,27 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Vehicle {
-  String id;
+  String? id;
   String name;
   int initialMileage;
 
   Vehicle({
-    required this.id,
+    this.id,
     required this.name,
     required this.initialMileage,
   });
 
-  /// A method to create a Vehicle object from a document in Firestore
-  static Vehicle fromFirestore(Map<String, dynamic> firestoreDoc) {
+  /// A method to create a Vehicle object from a document in Firestore. Id is got from the docref
+  static Vehicle fromFirestore(DocumentSnapshot<Map<String, dynamic>> firestoreDoc) {
     return Vehicle(
-      id: firestoreDoc['id'],
+      id: firestoreDoc.id,
       name: firestoreDoc['name'],
       initialMileage: firestoreDoc['initialMileage'],
     );
   }
 
-  /// A method to convert the Vehicle object to a map to be stored in Firestore
+  /// A method to convert the Vehicle object to a map to be stored in Firestore. Omitting the Id
   Map<String, dynamic> toFirestore() {
     return {
-      'id': id,
       'name': name,
       'initialMileage': initialMileage,
     };

@@ -54,7 +54,6 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
           onPressed: () async {
             final navigator = Navigator.of(context); // Get the navigator before the async gap.
             var newVehicle = Vehicle(
-              id: '', // Temporarily empty id
               name: vehicleNameController.text,
               initialMileage: int.parse(initialMileageController.text),
             );
@@ -66,8 +65,7 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
             widget.onVehicleAdded(newVehicle);
             navigator.pop();
           },
-        )
-      ],
+        )      ],
     );
   }
 }

@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Refuel {
-  String id;
+  String? id;
   String vehicleId;
   DateTime date;
   double liters;
@@ -7,7 +9,7 @@ class Refuel {
   int mileage;
 
   Refuel({
-    required this.id,
+    this.id,
     required this.vehicleId,
     required this.date,
     required this.liters,
@@ -15,8 +17,8 @@ class Refuel {
     required this.mileage,
   });
 
-  Refuel.fromFirestore(Map<String, dynamic> firestoreDoc)
-      : id = firestoreDoc['id'],
+  Refuel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> firestoreDoc)
+      : id = firestoreDoc.id,
         vehicleId = firestoreDoc['vehicleId'],
         date = firestoreDoc['date'].toDate(),
         liters = firestoreDoc['liters'],
