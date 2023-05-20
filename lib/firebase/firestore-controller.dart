@@ -42,13 +42,22 @@ class FirestoreController extends PersistenceController {
       'mileage': newMileage,
     });
   }
-
   @override
-  Future<void> addFuelAndUpdateMileage(Refuel record, int newMileage) async {
-    // Add the new fuel record
-    await addFuelRecord(record);
+  Future<Refuel> getLatestRefuel(String vehicleId) async {
+    final QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
+    await _firestore
+        .collection('refuels')
+        .where('vehicleId', isEqualTo: vehicleId)
+        .orderBy('date', descending: true)
+        .limit(1)
+        .get();
 
-    // Update the vehicle's mileage
-    await updateVehicleMileage(record.vehicleId, newMileage);
+    if (refuelsSnapshot.docs.isEmpty) {
+      throw Exception('No refuels found for this vehicle.');
+    }
+
+    return Refuel.fromFirestore(refuelsSnapshot.docs.first);
   }
+
+
 }
