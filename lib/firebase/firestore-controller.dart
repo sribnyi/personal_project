@@ -81,4 +81,17 @@ class FirestoreController extends PersistenceController {
     return refuelsSnapshot.docs.isNotEmpty;
   }
 
+  Future<List<Refuel>> getAllRefuelsForVehicle(String vehicleId) async {
+    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
+    await _firestore.collection('refuels')
+        .where('vehicleId', isEqualTo: vehicleId)
+        .orderBy('date', descending: true)
+        .get();
+
+    if (refuelsSnapshot.docs.isEmpty) {
+      throw Exception('No refuels found for this vehicle.');
+    }
+
+    return refuelsSnapshot.docs.map((doc) => Refuel.fromFirestore(doc)).toList();
+  }
 }

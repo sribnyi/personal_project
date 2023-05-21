@@ -6,7 +6,8 @@ typedef OnRefuelAdded = Function(Refuel newRefuel);
 class AddRefuelDialog extends StatefulWidget {
   final OnRefuelAdded onRefuelAdded;
 
-  const AddRefuelDialog({required this.onRefuelAdded, Key? key}) : super(key: key);
+  const AddRefuelDialog({required this.onRefuelAdded, Key? key})
+      : super(key: key);
 
   @override
   _AddRefuelDialogState createState() => _AddRefuelDialogState();
@@ -78,8 +79,9 @@ class _AddRefuelDialogState extends State<AddRefuelDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final newRefuel = Refuel(
-                vehicleId: "", // Add correct vehicleId here
-                date: DateTime.now(), // Adjust this as necessary
+                vehicleId: "",
+                // Add correct vehicleId here
+                date: DateTime.now(),
                 liters: double.parse(_litersController.text),
                 price: double.parse(_priceController.text),
                 mileage: int.parse(_mileageController.text),

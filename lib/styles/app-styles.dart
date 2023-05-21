@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 ButtonStyle textButtonStyle() {
   return TextButton.styleFrom(
     foregroundColor: Colors.white,
-    backgroundColor: Colors.blueGrey,
+    backgroundColor: Colors.grey[700],
     disabledForegroundColor: Colors.grey.withOpacity(0.38),
     textStyle: const TextStyle(fontSize: 20),
     padding: const EdgeInsets.all(16.0),
@@ -13,10 +13,10 @@ ButtonStyle textButtonStyle() {
   );
 }
 
-Icon iconStyle(IconData iconData) {
+Icon iconStyle(IconData iconData, double size) {
   return Icon(
     iconData,
-    size: 50,
-    color: Colors.blueGrey[500],
+    size: size,
+    color: Colors.grey[700],
   );
 }
