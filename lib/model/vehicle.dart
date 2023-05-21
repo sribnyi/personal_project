@@ -27,4 +27,17 @@ class Vehicle {
       'initialMileage': initialMileage,
     };
   }
+  @override
+  String toString() {
+    return 'Vehicle{id: $id, name: $name, initialMileage: $initialMileage}';
+  }
+
+  static Vehicle? getById(List<Vehicle> vehicles, String id) {
+    try {
+      return vehicles.firstWhere((vehicle) => vehicle.id == id);
+    } catch (e) {
+      // Handle the case where there is no vehicle with the given id
+      return null;
+    }
+  }
 }

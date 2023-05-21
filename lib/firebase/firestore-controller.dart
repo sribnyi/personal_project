@@ -59,5 +59,26 @@ class FirestoreController extends PersistenceController {
     return Refuel.fromFirestore(refuelsSnapshot.docs.first);
   }
 
+  @override
+  Future<Vehicle> getVehicleById(String id) async {
+    var snapshot = await _firestore.collection('vehicles').doc(id).get();
+    if (snapshot.exists) {
+      return Vehicle.fromFirestore(snapshot);
+    } else {
+      throw Exception('Vehicle not found!');
+    }
+  }
+
+  @override
+  Future<bool> vehicleHasRefuels(String vehicleId) async {
+    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
+    await _firestore
+        .collection('refuels')
+        .where('vehicleId', isEqualTo: vehicleId)
+        .limit(1)
+        .get();
+
+    return refuelsSnapshot.docs.isNotEmpty;
+  }
 
 }

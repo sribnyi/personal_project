@@ -33,4 +33,8 @@ class Refuel {
         'price': price,
         'mileage': mileage,
       };
+  @override
+  String toString() {
+    return 'Refuel{id: $id, vehicleId: $vehicleId, date: $date, liters: $liters, price: $price, mileage: $mileage}';
+  }
 }

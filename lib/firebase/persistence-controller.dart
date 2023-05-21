@@ -11,4 +11,8 @@ abstract class PersistenceController {
   Future<void> addFuelRecord(Refuel refuel); // added this line
 
   Future<void> updateVehicleMileage(String vehicleId, int newMileage);
+
+  Future<Vehicle> getVehicleById(String id);
+
+  Future<bool> vehicleHasRefuels(String id);
 }

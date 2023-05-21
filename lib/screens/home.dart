@@ -6,6 +6,7 @@ import 'package:personal_project/styles/row-padding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../components/add-refuel-dialog.dart';
 import '../components/add-vehicle-dialog.dart';
+import '../components/vehicle-dropdown.dart';
 import '../model/refuel.dart';
 import '../model/vehicle.dart';
 import '../styles/app-styles.dart';
@@ -36,9 +37,22 @@ class HomePage extends StatefulWidget {
 }
 
 String? selectedVehicleId;
-Refuel? latestRefuel;
 
 class _HomePageState extends State<HomePage> {
+  List<Vehicle> vehicles = [];
+  Vehicle defaultVehicle =
+      Vehicle(id: '1', name: 'No Vehicle Selected', initialMileage: 0);
+  Refuel defaultRefuel = Refuel(
+      id: '1',
+      vehicleId: "vehicleId",
+      date: DateTime.now(),
+      liters: 0,
+      price: 0,
+      mileage: 0);
+  String selectedVehicleId = '';
+  late Vehicle dropdownValue = defaultVehicle;
+  late Refuel latestRefuel = defaultRefuel;
+
   @override
   void initState() {
     super.initState();
@@ -46,47 +60,60 @@ class _HomePageState extends State<HomePage> {
     _loadSelectedVehicleId();
   }
 
-  List<Vehicle> vehicles = [];
-
   final Vehicle addNewVehicle =
-  Vehicle(name: 'Add New Vehicle', initialMileage: 0);
-  Vehicle? dropdownValue;
+      Vehicle(name: 'Add New Vehicle', initialMileage: 0);
 
-  Vehicle defaultVehicle =
-  Vehicle(name: 'No Vehicle Selected', initialMileage: 0);
   Future<void> _showAddRefuelDialog() async {
     showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AddRefuelDialog(
           onRefuelAdded: (newRefuel) async {
-            newRefuel.vehicleId = dropdownValue!.id!; // Ensure the vehicle id is set
-            await _firestoreController.addFuelRecord(newRefuel); // Save the new refuel data to Firestore
+            newRefuel.vehicleId = dropdownValue!.id!;
+            await _firestoreController.addFuelRecord(newRefuel);
             // You might want to update some state here
           },
         );
       },
     );
   }
-  Future<void> _loadSelectedVehicleId() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? id = prefs.getString('selectedVehicleId');
-    dropdownValue = vehicles.firstWhere((vehicle) => vehicle.id == id);
-    latestRefuel = await _firestoreController.getLatestRefuel(dropdownValue!.id!);
-    // Fetch the vehicles from Firestore
-    vehicles = await _firestoreController.getAllVehicles();
-
-    if (id != null && vehicles.isNotEmpty) {
-      dropdownValue = vehicles.firstWhere((vehicle) => vehicle.id == id);
-    }
-
-    return Future.value();
-
-  }
-
 
   Future<void> _updateVehicles() async {
     vehicles = await _firestoreController.getAllVehicles();
+  }
+
+  Future<List<Vehicle>> _getAllVehicles() async {
+    return await _firestoreController.getAllVehicles();
+  }
+
+  Future<bool> _vehicleHasRefuels(String id) async {
+    return await _firestoreController.vehicleHasRefuels(id);
+  }
+
+  Future<void> _loadSelectedVehicleId() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getString('selectedVehicleId') != null) {
+      selectedVehicleId = prefs.getString('selectedVehicleId')!;
+      if (await _vehicleHasRefuels(selectedVehicleId)) {
+        latestRefuel =
+            await _firestoreController.getLatestRefuel(selectedVehicleId);
+      } else {
+        latestRefuel = defaultRefuel;
+      }
+      _updateVehicles();
+      if (vehicles.isNotEmpty) {
+        dropdownValue =
+            await _firestoreController.getVehicleById(selectedVehicleId!);
+      } else {
+        dropdownValue = defaultVehicle;
+      }
+      return Future.value();
+    } else {
+      dropdownValue = defaultVehicle;
+      latestRefuel = defaultRefuel;
+      vehicles.add(defaultVehicle);
+    }
   }
 
   Future<void> _saveSelectedVehicleId(String id) async {
@@ -95,12 +122,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<Refuel> getLatestRefuel(String vehicleId) async {
-    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot = await FirebaseFirestore.instance
-        .collection('refuels')
-        .where('vehicleId', isEqualTo: vehicleId)
-        .orderBy('date', descending: true)
-        .limit(1)
-        .get();
+    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
+        await FirebaseFirestore.instance
+            .collection('refuels')
+            .where('vehicleId', isEqualTo: vehicleId)
+            .orderBy('date', descending: true)
+            .limit(1)
+            .get();
 
     if (refuelsSnapshot.docs.isEmpty) {
       throw Exception('No refuels found for this vehicle.');
@@ -109,32 +137,18 @@ class _HomePageState extends State<HomePage> {
     return Refuel.fromFirestore(refuelsSnapshot.docs.first);
   }
 
-  // Future<void> _showAddVehicleDialog() async {
-  //   showDialog<void>(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AddVehicleDialog(
-  //         onVehicleAdded: (newVehicle) async {
-  //           await _updateVehicles();
-  //           setState(() {
-  //             dropdownValue = newVehicle;
-  //           });
-  //         },
-  //       );
-  //     },
-  //   );
-  //   _loadSelectedVehicleId();
-  // }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
         future: _loadSelectedVehicleId(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Container(
-            );
+            return Container();
           } else {
+            print("printing dropdown before " + dropdownValue.name);
+            print(selectedVehicleId);
+            print(vehicles);
+
             return Scaffold(
               appBar: AppBar(
                 title: const Text('FuelApp'),
@@ -146,73 +160,26 @@ class _HomePageState extends State<HomePage> {
                     children: <Widget>[
                       iconStyle(CarbonIcons.car),
                       Flexible(
-                        child: FutureBuilder<List<Vehicle>>(
-                          future: Future.value(vehicles),
-                          // get the Future returned from getVehicles()
-                          builder: (BuildContext context,
-                              AsyncSnapshot<List<Vehicle>> snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const CircularProgressIndicator();
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            } else {
-                              /// When the Future completes successfully, build the DropdownButton
-                              return DropdownButton<Vehicle>(
-                                value: dropdownValue,
-                                icon: const Icon(CarbonIcons.arrow_down),
-                                iconSize: 24,
-                                elevation: 16,
-                                style: const TextStyle(color: Colors.black),
-                                underline: Container(
-                                  height: 2,
-                                  color: Colors.black,
-                                ),
-                                onChanged: (Vehicle? newValue) {
-                                  if (newValue != null &&
-                                      newValue.name == 'Add New Vehicle') {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AddVehicleDialog(
-                                          onVehicleAdded: (newVehicle) {
-                                            setState(() {
-                                              vehicles.add(newVehicle);
-                                              dropdownValue = newVehicle;
-                                            });
-                                            _saveSelectedVehicleId(
-                                                newVehicle.id!);
-                                          },
-                                        );
-                                      },
-                                    );
-                                  } else if (newValue != null) {
-                                    setState(() {
-                                      dropdownValue = newValue;
-                                    });
-                                    _saveSelectedVehicleId(newValue.id!);
-                                  }
-                                },
-                                items: vehicles.map<DropdownMenuItem<Vehicle>>(
-                                        (Vehicle vehicle) {
-                                      return DropdownMenuItem<Vehicle>(
-                                        value: vehicle,
-                                        child: Text(vehicle.name),
-                                      );
-                                    }).toList()
-                                  ..add(
-                                    DropdownMenuItem(
-                                      value: addNewVehicle,
-                                      child: const Text('Add New Vehicle'),
-                                    ),
-                                  ),
-                              );
-                            }
-                          },
-                        ),
-                      ),
+                          child: VehicleDropdown(
+                        vehicles: vehicles,
+                        dropdownValue: dropdownValue,
+                        selectedVehicleId: selectedVehicleId,
+                        onVehicleChanged: (newValue) {
+                          setState(() {
+                            dropdownValue = newValue;
+                          });
+                          _saveSelectedVehicleId(newValue.id!);
+                        },
+                        onVehicleAdded: (newVehicle) {
+                          setState(() {
+                            vehicles.add(newVehicle);
+                            dropdownValue = newVehicle;
+                          });
+                          _saveSelectedVehicleId(newVehicle.id!);
+                        },
+                      )),
                       Flexible(
-                        child: Text(dropdownValue?.initialMileage.toString() ??
+                        child: Text(dropdownValue.initialMileage.toString() ??
                             'No Mileage'),
                       ),
                     ],
@@ -223,20 +190,28 @@ class _HomePageState extends State<HomePage> {
                   ),
                   PaddedRow(
                     icon: CarbonIcons.calendar,
-                    text: latestRefuel != null ? 'Last Refuel Date: ${latestRefuel!.date}' : 'No refuel data available',
+                    text: latestRefuel != null
+                        ? 'Last Refuel Date: ${latestRefuel!.date}'
+                        : 'No refuel data available',
                   ),
                   PaddedRow(
                     icon: CarbonIcons.gas_station,
-                    text: latestRefuel != null ? 'Last Refuel Amount: ${latestRefuel!.liters} L' : 'No refuel data available',
+                    text: latestRefuel != null
+                        ? 'Last Refuel Amount: ${latestRefuel!.liters} L'
+                        : 'No refuel data available',
                   ),
                   PaddedRow(
                     icon: CarbonIcons.currency,
-                    text: latestRefuel != null ? 'Last Refuel Cost: \$${latestRefuel!.price}' : 'No refuel data available',
+                    text: latestRefuel != null
+                        ? 'Last Refuel Cost: \$${latestRefuel!.price}'
+                        : 'No refuel data available',
                   ),
                   Divider(color: Colors.grey),
                   PaddedRow(
                     icon: CarbonIcons.piggy_bank,
-                    text: latestRefuel != null ? 'Price per Liter: \$${latestRefuel!.price / latestRefuel!.liters}' : 'No refuel data available',
+                    text: latestRefuel != null
+                        ? 'Price per Liter: \$${latestRefuel!.price / latestRefuel!.liters}'
+                        : 'No refuel data available',
                   ),
                   const Divider(color: Colors.grey),
                   Row(
@@ -245,14 +220,12 @@ class _HomePageState extends State<HomePage> {
                       Column(
                         children: [
                           IconButton(
-                            icon: const Icon(CarbonIcons.gas_station_filled),
-                            color: Colors.blueGrey[500],
-                            iconSize: 100,
-                            onPressed: _showAddRefuelDialog
-                          ),
+                              icon: const Icon(CarbonIcons.gas_station_filled),
+                              color: Colors.blueGrey[500],
+                              iconSize: 100,
+                              onPressed: _showAddRefuelDialog),
                           Text("Add Fuel",
                               style: TextStyle(color: Colors.blueGrey[500])),
-
                         ],
                       ),
                       Column(
