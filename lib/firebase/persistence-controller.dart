@@ -15,4 +15,6 @@ abstract class PersistenceController {
   Future<Vehicle> getVehicleById(String id);
 
   Future<bool> vehicleHasRefuels(String id);
+
+  Future<void> updateVehicle(Vehicle vehicle);
 }

@@ -23,8 +23,10 @@ class VehicleDetailsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
+
         Icon(CarbonIcons.car, size: 50, color: Colors.grey[700]), // the car icon
-        Flexible(
+        Expanded(
+          flex: 3,
           child: VehicleDropdown(
             vehicles: vehicles,
             dropdownValue: dropdownValue,
@@ -33,8 +35,15 @@ class VehicleDetailsRow extends StatelessWidget {
             onVehicleAdded: onVehicleAdded,
           ),
         ),
-        Flexible(
-          child: Text(dropdownValue.initialMileage.toString()),
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Initial Mileage: ${dropdownValue.initialMileage}"),
+              Text("Current Mileage: ${dropdownValue.currentMileage}"),
+            ],
+          ),
         ),
       ],
     );

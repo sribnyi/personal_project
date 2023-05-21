@@ -10,25 +10,20 @@ class FirestoreController extends PersistenceController {
   @override
   Future<List<Vehicle>> getAllVehicles() async {
     var snapshot = await _firestore.collection('vehicles').get();
-    return snapshot.docs
-        .map((doc) => Vehicle.fromFirestore(doc))
-        .toList();
-
+    return snapshot.docs.map((doc) => Vehicle.fromFirestore(doc)).toList();
   }
 
   @override
   Future<String> saveVehicle(Vehicle vehicle) async {
     DocumentReference ref =
-    await _firestore.collection('vehicles').add(vehicle.toFirestore());
+        await _firestore.collection('vehicles').add(vehicle.toFirestore());
     return ref.id;
   }
 
   @override
   Future<List<Refuel>> getRefuels() async {
     var snapshot = await _firestore.collection('refuels').get();
-    return snapshot.docs
-        .map((doc) => Refuel.fromFirestore(doc))
-        .toList();
+    return snapshot.docs.map((doc) => Refuel.fromFirestore(doc)).toList();
   }
 
   @override
@@ -42,10 +37,10 @@ class FirestoreController extends PersistenceController {
       'mileage': newMileage,
     });
   }
+
   @override
   Future<Refuel> getLatestRefuel(String vehicleId) async {
-    final QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
-    await _firestore
+    final QuerySnapshot<Map<String, dynamic>> refuelsSnapshot = await _firestore
         .collection('refuels')
         .where('vehicleId', isEqualTo: vehicleId)
         .orderBy('date', descending: true)
@@ -71,8 +66,7 @@ class FirestoreController extends PersistenceController {
 
   @override
   Future<bool> vehicleHasRefuels(String vehicleId) async {
-    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
-    await _firestore
+    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot = await _firestore
         .collection('refuels')
         .where('vehicleId', isEqualTo: vehicleId)
         .limit(1)
@@ -82,8 +76,8 @@ class FirestoreController extends PersistenceController {
   }
 
   Future<List<Refuel>> getAllRefuelsForVehicle(String vehicleId) async {
-    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
-    await _firestore.collection('refuels')
+    QuerySnapshot<Map<String, dynamic>> refuelsSnapshot = await _firestore
+        .collection('refuels')
         .where('vehicleId', isEqualTo: vehicleId)
         .orderBy('date', descending: true)
         .get();
@@ -92,6 +86,16 @@ class FirestoreController extends PersistenceController {
       throw Exception('No refuels found for this vehicle.');
     }
 
-    return refuelsSnapshot.docs.map((doc) => Refuel.fromFirestore(doc)).toList();
+    return refuelsSnapshot.docs
+        .map((doc) => Refuel.fromFirestore(doc))
+        .toList();
+  }
+
+  @override
+  Future<void> updateVehicle(Vehicle vehicle) async {
+    await _firestore
+        .collection('vehicles')
+        .doc(vehicle.id)
+        .update(vehicle.toFirestore());
   }
 }

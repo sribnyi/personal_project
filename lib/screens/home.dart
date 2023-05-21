@@ -41,7 +41,7 @@ String? selectedVehicleId;
 class _HomePageState extends State<HomePage> {
   List<Vehicle> vehicles = [];
   Vehicle defaultVehicle =
-      Vehicle(id: '1', name: 'No Vehicle Selected', initialMileage: 0);
+      Vehicle(id: '1', name: 'No Vehicle Selected', initialMileage: 0, currentMileage: 0);
   Refuel defaultRefuel = Refuel(
       id: 'No refuel data available',
       vehicleId: "No refuel data available",
@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   final Vehicle addNewVehicle =
-      Vehicle(name: 'Add New Vehicle', initialMileage: 0);
+      Vehicle(name: 'Add New Vehicle', initialMileage: 0, currentMileage: 0);
 
   Future<void> showAddRefuelDialog() async {
     showDialog<void>(
@@ -71,6 +71,10 @@ class _HomePageState extends State<HomePage> {
           onRefuelAdded: (newRefuel) async {
             newRefuel.vehicleId = dropdownValue.id!;
             await _firestoreController.addFuelRecord(newRefuel);
+
+            // After adding a refuel record, update the current mileage of the vehicle
+            dropdownValue.currentMileage += newRefuel.mileage;
+            await _firestoreController.updateVehicle(dropdownValue);
             setState(() {
 
             });
@@ -83,6 +87,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _updateVehicles() async {
     vehicles = await _firestoreController.getAllVehicles();
   }
+
 
   // Future<List<Vehicle>> _getAllVehicles() async {
   //   return await _firestoreController.getAllVehicles();

@@ -56,6 +56,7 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
             var newVehicle = Vehicle(
               name: vehicleNameController.text,
               initialMileage: int.parse(initialMileageController.text),
+              currentMileage: int.parse(initialMileageController.text),
             );
             // Save the new vehicle to Firestore and get the document id
             String id = await _firestoreController.saveVehicle(newVehicle);

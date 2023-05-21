@@ -23,7 +23,7 @@ class VehicleDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Vehicle addNewVehicle =
-    Vehicle(name: 'Add New Vehicle', initialMileage: 0);
+    Vehicle(name: 'Add New Vehicle', initialMileage: 0, currentMileage: 0);
     return DropdownButton<Vehicle>(
       value: Vehicle.getById(vehicles, selectedVehicleId!),
       icon: const Icon(CarbonIcons.arrow_down),

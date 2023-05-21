@@ -4,11 +4,13 @@ class Vehicle {
   String? id;
   String name;
   int initialMileage;
+  int currentMileage;
 
   Vehicle({
     this.id,
     required this.name,
     required this.initialMileage,
+    required this.currentMileage
   });
 
   /// A method to create a Vehicle object from a document in Firestore. Id is got from the docref
@@ -17,6 +19,7 @@ class Vehicle {
       id: firestoreDoc.id,
       name: firestoreDoc['name'],
       initialMileage: firestoreDoc['initialMileage'],
+      currentMileage: firestoreDoc['currentMileage'],
     );
   }
 
@@ -25,6 +28,7 @@ class Vehicle {
     return {
       'name': name,
       'initialMileage': initialMileage,
+      'currentMileage': currentMileage
     };
   }
   @override
