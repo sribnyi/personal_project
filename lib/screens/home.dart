@@ -1,6 +1,7 @@
 import 'package:carbon_icons/carbon_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_project/components/app-bar.dart';
 import 'package:personal_project/firebase/firestore-controller.dart';
@@ -38,12 +39,15 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-String? selectedVehicleId;
+String selectedVehicleId = '';
 
 class _HomePageState extends State<HomePage> {
   List<Vehicle> vehicles = [];
-  Vehicle defaultVehicle =
-      Vehicle(id: '1', name: 'No Vehicle Selected', initialMileage: 0, currentMileage: 0);
+  Vehicle defaultVehicle = Vehicle(
+      id: '1',
+      name: 'No Vehicle Selected',
+      initialMileage: 0,
+      currentMileage: 0);
   Refuel defaultRefuel = Refuel(
       id: 'No refuel data available',
       vehicleId: "No refuel data available",
@@ -70,17 +74,13 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AddRefuelDialog(
+          currentMileage: dropdownValue.currentMileage,
           onRefuelAdded: (newRefuel) async {
             newRefuel.vehicleId = dropdownValue.id!;
             await _firestoreController.addFuelRecord(newRefuel);
-
-
-            // After adding a refuel record, update the current mileage of the vehicle
-            dropdownValue.currentMileage += newRefuel.mileage;
+            dropdownValue.currentMileage = newRefuel.mileage;
             await _firestoreController.updateVehicle(dropdownValue);
-            setState(() {
-
-            });
+            setState(() {});
           },
         );
       },
@@ -149,7 +149,14 @@ class _HomePageState extends State<HomePage> {
         future: _loadSelectedVehicleId(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Container();
+            return const Scaffold(
+              body: Center(
+                child: SpinKitCircle(
+                  color: Colors.grey,
+                  size: 100.0,
+                ),
+              ),
+            );
           } else {
             return Scaffold(
               appBar: const CustomAppBar(),
@@ -202,7 +209,8 @@ class _HomePageState extends State<HomePage> {
                         icon: CarbonIcons.calendar,
                         text: DateTimeFormat.formatDateTime(latestRefuel.date),
                         size: 50,
-                      ),                      PaddedRow(
+                      ),
+                      PaddedRow(
                           icon: CarbonIcons.gas_station,
                           text: "${latestRefuel.liters} liters",
                           size: 50),

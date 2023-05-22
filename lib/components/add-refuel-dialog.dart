@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:personal_project/screens/home.dart';
 import '../model/refuel.dart';
 
 typedef OnRefuelAdded = Function(Refuel newRefuel);
 
 class AddRefuelDialog extends StatefulWidget {
   final OnRefuelAdded onRefuelAdded;
+  final int currentMileage;
 
-  const AddRefuelDialog({required this.onRefuelAdded, Key? key})
+  const AddRefuelDialog({required this.onRefuelAdded, Key? key, required this.currentMileage})
       : super(key: key);
 
   @override
@@ -60,8 +62,9 @@ class _AddRefuelDialogState extends State<AddRefuelDialog> {
                 }
                 return null;
               },
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Mileage',
+                hintText: 'Current mileage is ${widget.currentMileage}',  // Add this line
               ),
             ),
           ],
@@ -79,8 +82,7 @@ class _AddRefuelDialogState extends State<AddRefuelDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final newRefuel = Refuel(
-                vehicleId: "",
-                // Add correct vehicleId here
+                vehicleId: selectedVehicleId,
                 date: DateTime.now(),
                 liters: double.parse(_litersController.text),
                 price: double.parse(_priceController.text),
