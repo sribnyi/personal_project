@@ -24,10 +24,12 @@ class VehicleDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final Vehicle addNewVehicle =
     Vehicle(name: 'Add New Vehicle', initialMileage: 0, currentMileage: 0);
+
+
     return DropdownButton<Vehicle>(
-      value: Vehicle.getById(vehicles, selectedVehicleId!),
+      value: Vehicle.getById(vehicles, selectedVehicleId),
       icon: const Icon(CarbonIcons.arrow_down),
-      iconSize: 24,
+      iconSize: 28,
       elevation: 16,
       style: const TextStyle(color: Colors.black),
       underline: Container(
@@ -50,7 +52,6 @@ class VehicleDropdown extends StatelessWidget {
         }
       },
       items: vehicles.map<DropdownMenuItem<Vehicle>>((Vehicle vehicle) {
-        print(vehicle.name);
         return DropdownMenuItem(
           value: vehicle,
           child: Text(vehicle.name),

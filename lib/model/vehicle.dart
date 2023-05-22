@@ -23,6 +23,7 @@ class Vehicle {
     );
   }
 
+
   /// A method to convert the Vehicle object to a map to be stored in Firestore. Omitting the Id
   Map<String, dynamic> toFirestore() {
     return {

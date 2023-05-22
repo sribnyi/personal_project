@@ -1,6 +1,7 @@
 import 'package:carbon_icons/carbon_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:personal_project/components/app-bar.dart';
 import 'package:personal_project/firebase/firestore-controller.dart';
 import 'package:personal_project/styles/row-padding.dart';
@@ -10,6 +11,7 @@ import '../components/add-refuel-dialog.dart';
 import '../components/vehicle-details.dart';
 import '../model/refuel.dart';
 import '../model/vehicle.dart';
+import '../utilities/date-time-formatter.dart';
 
 final _firestoreController = FirestoreController();
 
@@ -72,6 +74,7 @@ class _HomePageState extends State<HomePage> {
             newRefuel.vehicleId = dropdownValue.id!;
             await _firestoreController.addFuelRecord(newRefuel);
 
+
             // After adding a refuel record, update the current mileage of the vehicle
             dropdownValue.currentMileage += newRefuel.mileage;
             await _firestoreController.updateVehicle(dropdownValue);
@@ -87,7 +90,6 @@ class _HomePageState extends State<HomePage> {
   Future<void> _updateVehicles() async {
     vehicles = await _firestoreController.getAllVehicles();
   }
-
 
   // Future<List<Vehicle>> _getAllVehicles() async {
   //   return await _firestoreController.getAllVehicles();
@@ -198,10 +200,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                       PaddedRow(
                         icon: CarbonIcons.calendar,
-                        text: latestRefuel.date.toString(),
+                        text: DateTimeFormat.formatDateTime(latestRefuel.date),
                         size: 50,
-                      ),
-                      PaddedRow(
+                      ),                      PaddedRow(
                           icon: CarbonIcons.gas_station,
                           text: "${latestRefuel.liters} liters",
                           size: 50),
@@ -213,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                       PaddedRow(
                           icon: CarbonIcons.piggy_bank,
                           text:
-                              "${latestRefuel.price / latestRefuel.liters} eur/liter",
+                              "${(latestRefuel.price / latestRefuel.liters).toStringAsFixed(4)} eur/liter",
                           size: 50),
                       Divider(color: Colors.grey[800]),
                       ActionButtonRow(

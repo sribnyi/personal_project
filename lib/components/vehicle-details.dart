@@ -11,7 +11,8 @@ class VehicleDetailsRow extends StatelessWidget {
   final Function(Vehicle) onVehicleChanged;
   final Function(Vehicle) onVehicleAdded;
 
-  const VehicleDetailsRow({super.key,
+  const VehicleDetailsRow({
+    super.key,
     required this.vehicles,
     required this.dropdownValue,
     required this.selectedVehicleId,
@@ -21,31 +22,39 @@ class VehicleDetailsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-
-        Icon(CarbonIcons.car, size: 50, color: Colors.grey[700]), // the car icon
-        Expanded(
-          flex: 3,
-          child: VehicleDropdown(
-            vehicles: vehicles,
-            dropdownValue: dropdownValue,
-            selectedVehicleId: selectedVehicleId,
-            onVehicleChanged: onVehicleChanged,
-            onVehicleAdded: onVehicleAdded,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: <Widget>[
+          Icon(CarbonIcons.car, size: 50, color: Colors.grey[700]),
+          const SizedBox(
+            width: 10,
           ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Initial Mileage: ${dropdownValue.initialMileage}"),
-              Text("Current Mileage: ${dropdownValue.currentMileage}"),
-            ],
+          Flexible(
+            flex: 2,
+            child: VehicleDropdown(
+              vehicles: vehicles,
+              dropdownValue: dropdownValue,
+              selectedVehicleId: selectedVehicleId,
+              onVehicleChanged: onVehicleChanged,
+              onVehicleAdded: onVehicleAdded,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(
+            width: 10,
+          ),
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Initial Mileage: ${dropdownValue.initialMileage}"),
+                Text("Current Mileage: ${dropdownValue.currentMileage}"),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

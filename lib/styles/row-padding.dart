@@ -14,9 +14,11 @@ class PaddedRow extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: <Widget>[
-          iconStyle(icon, size), // Use your icon style function
+          iconStyle(icon, size),
+          const SizedBox(
+            width: 10,
+          ),
           Text(text),
-
         ],
       ),
     );
