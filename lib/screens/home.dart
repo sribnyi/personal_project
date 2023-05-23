@@ -2,17 +2,18 @@ import 'package:carbon_icons/carbon_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:intl/intl.dart';
 import 'package:personal_project/components/app-bar.dart';
 import 'package:personal_project/firebase/firestore-controller.dart';
 import 'package:personal_project/styles/row-padding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../components/action-buttons.dart';
 import '../components/add-refuel-dialog.dart';
+import '../components/connectivity-widget.dart';
 import '../components/vehicle-details.dart';
 import '../model/refuel.dart';
 import '../model/vehicle.dart';
 import '../utilities/date-time-formatter.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 final _firestoreController = FirestoreController();
 
@@ -67,7 +68,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   final Vehicle addNewVehicle =
-      Vehicle(name: 'Add New Vehicle', initialMileage: 0, currentMileage: 0);
+  Vehicle(name: 'Add New Vehicle', initialMileage: 0, currentMileage: 0);
 
   Future<void> showAddRefuelDialog() async {
     showDialog<void>(
@@ -91,10 +92,6 @@ class _HomePageState extends State<HomePage> {
     vehicles = await _firestoreController.getAllVehicles();
   }
 
-  // Future<List<Vehicle>> _getAllVehicles() async {
-  //   return await _firestoreController.getAllVehicles();
-  // }
-
   Future<bool> _vehicleHasRefuels(String id) async {
     return await _firestoreController.vehicleHasRefuels(id);
   }
@@ -105,14 +102,14 @@ class _HomePageState extends State<HomePage> {
       selectedVehicleId = prefs.getString('selectedVehicleId')!;
       if (await _vehicleHasRefuels(selectedVehicleId)) {
         latestRefuel =
-            await _firestoreController.getLatestRefuel(selectedVehicleId);
+        await _firestoreController.getLatestRefuel(selectedVehicleId);
       } else {
         latestRefuel = defaultRefuel;
       }
       _updateVehicles();
       if (vehicles.isNotEmpty) {
         dropdownValue =
-            await _firestoreController.getVehicleById(selectedVehicleId);
+        await _firestoreController.getVehicleById(selectedVehicleId);
       } else {
         dropdownValue = defaultVehicle;
       }
@@ -131,12 +128,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<Refuel> getLatestRefuel(String vehicleId) async {
     QuerySnapshot<Map<String, dynamic>> refuelsSnapshot =
-        await FirebaseFirestore.instance
-            .collection('refuels')
-            .where('vehicleId', isEqualTo: vehicleId)
-            .orderBy('date', descending: true)
-            .limit(1)
-            .get();
+    await FirebaseFirestore.instance
+        .collection('refuels')
+        .where('vehicleId', isEqualTo: vehicleId)
+        .orderBy('date', descending: true)
+        .limit(1)
+        .get();
     if (refuelsSnapshot.docs.isEmpty) {
       throw Exception('No refuels found for this vehicle.');
     }
@@ -146,95 +143,98 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: _loadSelectedVehicleId(),
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: SpinKitCircle(
-                  color: Colors.grey,
-                  size: 100.0,
+      future: _loadSelectedVehicleId(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        return ConnectivityStatus(
+          child: snapshot.connectionState == ConnectionState.waiting
+              ? const Scaffold(
+            body: Center(
+              child: SpinKitCircle(
+                color: Colors.grey,
+                size: 100.0,
+              ),
+            ),
+          )
+              : Scaffold(
+            appBar: const CustomAppBar(),
+            body: Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.center,
+                      colors: [Color(0xFFcccccc), Color(0xFFfeffff)],
+                    ),
+                  ),
                 ),
-              ),
-            );
-          } else {
-            return Scaffold(
-              appBar: const CustomAppBar(),
-              body: Stack(
-                children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.center,
-                        colors: [Color(0xFFcccccc), Color(0xFFfeffff)],
-                      ),
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.center,
+                      colors: [Color(0xFFcccccc), Color(0xFFfeffff)],
                     ),
                   ),
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.center,
-                        colors: [Color(0xFFcccccc), Color(0xFFfeffff)],
-                      ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    VehicleDetailsRow(
+                      vehicles: vehicles,
+                      dropdownValue: dropdownValue,
+                      selectedVehicleId: selectedVehicleId,
+                      onVehicleChanged: (newValue) {
+                        setState(() {
+                          dropdownValue = newValue;
+                        });
+                        _saveSelectedVehicleId(newValue.id!);
+                      },
+                      onVehicleAdded: (newVehicle) {
+                        setState(() {
+                          vehicles.add(newVehicle);
+                          dropdownValue = newVehicle;
+                        });
+                        _saveSelectedVehicleId(newVehicle.id!);
+                      },
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      VehicleDetailsRow(
-                        vehicles: vehicles,
-                        dropdownValue: dropdownValue,
-                        selectedVehicleId: selectedVehicleId,
-                        onVehicleChanged: (newValue) {
-                          setState(() {
-                            dropdownValue = newValue;
-                          });
-                          _saveSelectedVehicleId(newValue.id!);
-                        },
-                        onVehicleAdded: (newVehicle) {
-                          setState(() {
-                            vehicles.add(newVehicle);
-                            dropdownValue = newVehicle;
-                          });
-                          _saveSelectedVehicleId(newVehicle.id!);
-                        },
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text("Last Refuel:"),
-                      ),
-                      PaddedRow(
-                        icon: CarbonIcons.calendar,
-                        text: DateTimeFormat.formatDateTime(latestRefuel.date),
-                        size: 50,
-                      ),
-                      PaddedRow(
-                          icon: CarbonIcons.gas_station,
-                          text: "${latestRefuel.liters} liters",
-                          size: 50),
-                      PaddedRow(
-                          icon: CarbonIcons.currency,
-                          text: "${latestRefuel.price} eur",
-                          size: 50),
-                      const Divider(color: Colors.grey),
-                      PaddedRow(
-                          icon: CarbonIcons.piggy_bank,
-                          text:
-                              "${(latestRefuel.price / latestRefuel.liters).toStringAsFixed(4)} eur/liter",
-                          size: 50),
-                      Divider(color: Colors.grey[800]),
-                      ActionButtonRow(
-                        dropdownValue: dropdownValue,
-                        showAddRefuelDialog: showAddRefuelDialog,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }
-        });
+                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Last Refuel:"),
+                    ),
+                    PaddedRow(
+                      icon: CarbonIcons.calendar,
+                      text: DateTimeFormat.formatDateTime(latestRefuel.date),
+                      size: 50,
+                    ),
+                    PaddedRow(
+                        icon: CarbonIcons.gas_station,
+                        text: "${latestRefuel.liters} liters",
+                        size: 50),
+                    PaddedRow(
+                        icon: CarbonIcons.currency,
+                        text: "${latestRefuel.price} eur",
+                        size: 50),
+                    const Divider(color: Colors.grey),
+                    PaddedRow(
+                        icon: CarbonIcons.piggy_bank,
+                        text:
+                        "${(latestRefuel.price / latestRefuel.liters)
+                            .toStringAsFixed(4)} eur/liter",
+                        size: 50),
+                    Divider(color: Colors.grey[800]),
+                    ActionButtonRow(
+                      dropdownValue: dropdownValue,
+                      showAddRefuelDialog: showAddRefuelDialog,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

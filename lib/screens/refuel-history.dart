@@ -1,3 +1,4 @@
+import 'package:carbon_icons/carbon_icons.dart';
 import 'package:flutter/material.dart';
 import '../model/refuel.dart';
 import '../firebase/firestore-controller.dart';
@@ -31,14 +32,14 @@ class _RefuelHistoryScreenState extends State<RefuelHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Refuel History'),
+        title: const Text('Refuel History'),
       ),
       body: ListView.builder(
         itemCount: refuels.length,
         itemBuilder: (context, index) {
           final refuel = refuels[index];
           return ListTile(
-            leading: Icon(Icons.local_gas_station),
+            leading: const Icon(CarbonIcons.gas_station_filled, size: 40,),
             title: Text('Refuel on ${refuel.date}'),
             subtitle: Text('Liters: ${refuel.liters}, Price: ${refuel.price}, Mileage: ${refuel.mileage}'),
           );
